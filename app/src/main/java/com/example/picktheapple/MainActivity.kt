@@ -159,9 +159,7 @@ class MainActivity : AppCompatActivity() {
                             && ghost.x - 1 != appleCord.x && ghost.y != appleCord.y
                             && !checkGhostsCord(Cordinates(ghost.x - 1, ghost.y))
                         ) {
-                            setImageOnBoard(ghost.x, ghost.y, null)
-                            ghost.x -= 1
-                            setImageOnBoard(ghost.x, ghost.y, R.drawable.ghost)
+                            updateGhostPosition(ghost, ghost.x - 1, ghost.y)
                             moved = true
                         }
                     }
@@ -171,9 +169,7 @@ class MainActivity : AppCompatActivity() {
                             && ghost.x + 1 != appleCord.x && ghost.y != appleCord.y
                             && !checkGhostsCord(Cordinates(ghost.x + 1, ghost.y))
                         ) {
-                            setImageOnBoard(ghost.x, ghost.y, null)
-                            ghost.x += 1
-                            setImageOnBoard(ghost.x, ghost.y, R.drawable.ghost)
+                            updateGhostPosition(ghost, ghost.x + 1, ghost.y)
                             moved = true
                         }
                     }
@@ -183,9 +179,7 @@ class MainActivity : AppCompatActivity() {
                             && ghost.x != appleCord.x && ghost.y - 1 != appleCord.y
                             && !checkGhostsCord(Cordinates(ghost.x, ghost.y - 1))
                         ) {
-                            setImageOnBoard(ghost.x, ghost.y, null)
-                            ghost.y -= 1
-                            setImageOnBoard(ghost.x, ghost.y, R.drawable.ghost)
+                            updateGhostPosition(ghost, ghost.x, ghost.y - 1)
                             moved = true
                         }
                     }
@@ -195,9 +189,7 @@ class MainActivity : AppCompatActivity() {
                             && ghost.x != appleCord.x && ghost.y != appleCord.y + 1
                             && !checkGhostsCord(Cordinates(ghost.x, ghost.y + 1))
                         ) {
-                            setImageOnBoard(ghost.x, ghost.y, null)
-                            ghost.y += 1
-                            setImageOnBoard(ghost.x, ghost.y, R.drawable.ghost)
+                            updateGhostPosition(ghost, ghost.x, ghost.y + 1)
                             moved = true
                         }
                     }
@@ -235,6 +227,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return ghostFound
+    }
+
+    private fun MainView.updateGhostPosition(ghost: Cordinates, newX: Int, newY: Int) {
+        // Clear current position
+        setImageOnBoard(ghost.x, ghost.y, null)
+        // Update the ghost's coordinates
+        ghost.x = newX
+        ghost.y = newY
+        // Set new position
+        setImageOnBoard(ghost.x, ghost.y, R.drawable.ghost)
     }
 
     fun MainView.gameOver() {
