@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun MainView.play() = apply {
-        setImageOnBoard(playerCord.x, playerCord.y, R.drawable.happy_emoji)
+        playerCord.x = 5
         activeGame = true
         ghostsCord = mutableListOf()
         score = 0
@@ -88,6 +88,7 @@ class MainActivity : AppCompatActivity() {
             while (activeGame) {
                 // Update UI elements here on the Main thread
                 moveGhosts()
+                initGhost()
                 if (checkGhostsCord(playerCord)) {
                     gameOver()
                     activeGame = false // Stop the loop if the game is over
@@ -149,52 +150,46 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun MainView.moveGhosts() = apply {
-        var moved = false
         for (ghost in ghostsCord) {
-            do {
-                val randNum = (Math.random() * 4).toInt()
-                when (randNum) {
-                    0 -> {
-                        if (checkBounds(ghost.x - 1, ghost.y)
-                            && ghost.x - 1 != appleCord.x && ghost.y != appleCord.y
-                            && !checkGhostsCord(Cordinates(ghost.x - 1, ghost.y))
-                        ) {
-                            updateGhostPosition(ghost, ghost.x - 1, ghost.y)
-                            moved = true
-                        }
-                    }
-
-                    1 -> {
-                        if (checkBounds(ghost.x + 1, ghost.y)
-                            && ghost.x + 1 != appleCord.x && ghost.y != appleCord.y
-                            && !checkGhostsCord(Cordinates(ghost.x + 1, ghost.y))
-                        ) {
-                            updateGhostPosition(ghost, ghost.x + 1, ghost.y)
-                            moved = true
-                        }
-                    }
-
-                    2 -> {
-                        if (checkBounds(ghost.x, ghost.y - 1)
-                            && ghost.x != appleCord.x && ghost.y - 1 != appleCord.y
-                            && !checkGhostsCord(Cordinates(ghost.x, ghost.y - 1))
-                        ) {
-                            updateGhostPosition(ghost, ghost.x, ghost.y - 1)
-                            moved = true
-                        }
-                    }
-
-                    else -> {
-                        if (checkBounds(ghost.x, ghost.y + 1)
-                            && ghost.x != appleCord.x && ghost.y != appleCord.y + 1
-                            && !checkGhostsCord(Cordinates(ghost.x, ghost.y + 1))
-                        ) {
-                            updateGhostPosition(ghost, ghost.x, ghost.y + 1)
-                            moved = true
-                        }
-                    }
+            val hashMap = HashMap<Int, Int>()
+            var posRandNumCount = 0
+            if (checkBounds(ghost.x - 1, ghost.y)
+                && ghost.x - 1 != appleCord.x && ghost.y != appleCord.y
+                && !checkGhostsCord(Cordinates(ghost.x - 1, ghost.y))
+            ) {
+                hashMap[posRandNumCount] = 0
+                posRandNumCount++
+            }
+            if (checkBounds(ghost.x + 1, ghost.y)
+              && ghost.x + 1 != appleCord.x && ghost.y != appleCord.y
+              && !checkGhostsCord(Cordinates(ghost.x + 1, ghost.y))
+            ) {
+                hashMap[posRandNumCount] = 1
+                posRandNumCount++
+            }
+            if (checkBounds(ghost.x, ghost.y - 1)
+             && ghost.x != appleCord.x && ghost.y - 1 != appleCord.y
+              && !checkGhostsCord(Cordinates(ghost.x, ghost.y - 1))
+            ) {
+                hashMap[posRandNumCount] = 2
+                posRandNumCount++
+            }
+            if (checkBounds(ghost.x, ghost.y + 1)
+               && ghost.x != appleCord.x && ghost.y != appleCord.y + 1
+                && !checkGhostsCord(Cordinates(ghost.x, ghost.y + 1))
+            ) {
+                hashMap[posRandNumCount] = 3
+                posRandNumCount++
+            }
+            val randNum = (Math.random() * posRandNumCount).toInt()
+            if (posRandNumCount != 0) {
+                when (hashMap[randNum]) {
+                    0 -> updateGhostPosition(ghost, ghost.x - 1, ghost.y)
+                    1 -> updateGhostPosition(ghost, ghost.x + 1, ghost.y)
+                    2 -> updateGhostPosition(ghost, ghost.x, ghost.y - 1)
+                    else -> updateGhostPosition(ghost, ghost.x, ghost.y + 1)
                 }
-            } while (!moved)
+            }
         }
     }
 
