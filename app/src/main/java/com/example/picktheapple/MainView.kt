@@ -1,6 +1,7 @@
 package com.example.picktheapple
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Color.BLACK
 import android.view.View
 import android.widget.GridLayout
@@ -41,6 +42,7 @@ class MainView(context: Context): ConstraintLayout(context) {
     }
 
     init {
+        setBackgroundColor(Color.WHITE)
         addView(title)
         title.layoutParams = LayoutParams(
             LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT
