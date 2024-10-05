@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity() {
     val playerCord = Cordinates(5, 5)
@@ -83,19 +84,19 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        CoroutineScope(Dispatchers.IO).launch {
-            // Your long-running task here
-            // val result = performTask()
+        CoroutineScope(Dispatchers.Main).launch {
             while (activeGame) {
-                // Switch to the main thread to update the UI
-                withContext(Dispatchers.Main) {
-                    // Update UI elements here
-                    moveGhosts()
-                    if (checkGhostsCord(playerCord)) gameOver()
+                // Update UI elements here on the Main thread
+                moveGhosts()
+                if (checkGhostsCord(playerCord)) {
+                    gameOver()
+                    activeGame = false // Stop the loop if the game is over
                 }
-                delay(1000)
+
+                delay(1000) // Suspend coroutine for 1 second
             }
         }
+
     }
 
     private fun checkBounds(x: Int, y: Int): Boolean {
