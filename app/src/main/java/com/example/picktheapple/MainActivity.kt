@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
         ghostsCord = mutableListOf()
         score = 0
         scoreText.text = "0"
+        initPlayer()
         placeApple()
         initGhost()
         joystick.upBtn.setOnClickListener {
@@ -88,7 +89,6 @@ class MainActivity : AppCompatActivity() {
             while (activeGame) {
                 // Update UI elements here on the Main thread
                 moveGhosts()
-                initGhost()
                 if (checkGhostsCord(playerCord)) {
                     gameOver()
                     activeGame = false // Stop the loop if the game is over
@@ -147,6 +147,12 @@ class MainActivity : AppCompatActivity() {
         val y = randNum % 11
         ghostsCord.add(Cordinates(x, y))
         setImageOnBoard(x, y, R.drawable.ghost)
+    }
+
+
+    private fun MainView.initPlayer() {
+        playerCord.y = 5
+        setImageOnBoard(playerCord.x, playerCord.y, R.drawable.happy_emoji)
     }
 
     private fun MainView.moveGhosts() = apply {
