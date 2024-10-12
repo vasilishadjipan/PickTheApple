@@ -135,7 +135,7 @@ class MainActivity : AppCompatActivity() {
     private fun MainView.initGhost() = apply {
         var randNum = (Math.random() * 121).toInt()
         while (randNum / 11 == playerCord.x && randNum % 11 == playerCord.y
-            && randNum / 11 == appleCord.x && randNum % 11 == appleCord.y
+            && isAppleCord(randNum / 11, randNum % 11)
             && checkGhostsCord(Cordinates(randNum / 11, randNum % 11))
         ) {
             randNum = (Math.random() * 121).toInt()
@@ -155,7 +155,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun MainView.moveGhosts() = apply {
         for (ghost in ghostsCord) {
-            var posRandNumCount = 0
             var bestMove = 0
             var bestMoveDistance = Float.MAX_VALUE
             var distance = 0f
