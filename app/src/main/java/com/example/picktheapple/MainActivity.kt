@@ -12,10 +12,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.system.measureTimeMillis
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class MainActivity : AppCompatActivity() {
     val playerCord = Cordinates(5, 5)
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     var score = 0
     var activeGame = true
     var screenWidth = 0
+    var ghostMoveJob: Job? = null // To track the coroutine
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +41,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun MainView.play() = apply {
-        playerCord.x = 5
         activeGame = true
         ghostsCord = mutableListOf()
         score = 0
@@ -85,19 +86,15 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        CoroutineScope(Dispatchers.Main).launch {
+        ghostMoveJob = CoroutineScope(Dispatchers.Main).launch {
             while (activeGame) {
                 // Update UI elements here on the Main thread
                 moveGhosts()
-                if (checkGhostsCord(playerCord)) {
+                if (checkGhostsCord(playerCord))
                     gameOver()
-                    activeGame = false // Stop the loop if the game is over
-                }
-
                 delay(1000) // Suspend coroutine for 1 second
             }
         }
-
     }
 
     private fun checkBounds(x: Int, y: Int): Boolean {
@@ -151,45 +148,59 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun MainView.initPlayer() {
+        playerCord.x = 5
         playerCord.y = 5
         setImageOnBoard(playerCord.x, playerCord.y, R.drawable.happy_emoji)
     }
 
     private fun MainView.moveGhosts() = apply {
         for (ghost in ghostsCord) {
-            val hashMap = HashMap<Int, Int>()
             var posRandNumCount = 0
+            var bestMove = 0
+            var bestMoveDistance = Float.MAX_VALUE
+            var distance = 0f
             if (checkBounds(ghost.x - 1, ghost.y)
-                && ghost.x - 1 != appleCord.x && ghost.y != appleCord.y
+                && !isAppleCord(ghost.x - 1, ghost.y)
                 && !checkGhostsCord(Cordinates(ghost.x - 1, ghost.y))
             ) {
-                hashMap[posRandNumCount] = 0
-                posRandNumCount++
+                distance = findGhostPlayerDistance(ghost.x - 1, ghost.y)
+                if(distance < bestMoveDistance) {
+                    bestMove = 0
+                    bestMoveDistance = distance
+                }
             }
             if (checkBounds(ghost.x + 1, ghost.y)
-              && ghost.x + 1 != appleCord.x && ghost.y != appleCord.y
+              && !isAppleCord(ghost.x + 1, ghost.y)
               && !checkGhostsCord(Cordinates(ghost.x + 1, ghost.y))
             ) {
-                hashMap[posRandNumCount] = 1
-                posRandNumCount++
+                distance = findGhostPlayerDistance(ghost.x + 1, ghost.y)
+                if(distance < bestMoveDistance) {
+                    bestMove = 1
+                    bestMoveDistance = distance
+                }
             }
             if (checkBounds(ghost.x, ghost.y - 1)
-             && ghost.x != appleCord.x && ghost.y - 1 != appleCord.y
+             && !isAppleCord(ghost.x, ghost.y - 1)
               && !checkGhostsCord(Cordinates(ghost.x, ghost.y - 1))
             ) {
-                hashMap[posRandNumCount] = 2
-                posRandNumCount++
+                distance = findGhostPlayerDistance(ghost.x, ghost.y - 1)
+                if(distance < bestMoveDistance) {
+                    bestMove = 2
+                    bestMoveDistance = distance
+                }
             }
             if (checkBounds(ghost.x, ghost.y + 1)
-               && ghost.x != appleCord.x && ghost.y != appleCord.y + 1
+               && !isAppleCord(ghost.x, ghost.y + 1)
                 && !checkGhostsCord(Cordinates(ghost.x, ghost.y + 1))
             ) {
-                hashMap[posRandNumCount] = 3
-                posRandNumCount++
+                distance = findGhostPlayerDistance(ghost.x, ghost.y + 1)
+                if(distance < bestMoveDistance) {
+                    bestMove = 3
+                    bestMoveDistance = distance
+                }
             }
-            val randNum = (Math.random() * posRandNumCount).toInt()
-            if (posRandNumCount != 0) {
-                when (hashMap[randNum]) {
+            if (bestMoveDistance != Float.MAX_VALUE) {
+                when (bestMove) {
                     0 -> updateGhostPosition(ghost, ghost.x - 1, ghost.y)
                     1 -> updateGhostPosition(ghost, ghost.x + 1, ghost.y)
                     2 -> updateGhostPosition(ghost, ghost.x, ghost.y - 1)
@@ -230,6 +241,13 @@ class MainActivity : AppCompatActivity() {
         return ghostFound
     }
 
+    fun isAppleCord(x: Int, y: Int) = appleCord.x == x && appleCord.y == y
+
+    fun findGhostPlayerDistance(ghostX: Int, ghostY: Int) =
+        sqrt((ghostX - playerCord.x).toFloat().pow(2)
+                + (ghostY - playerCord.y).toFloat().pow(2))
+
+
     private fun MainView.updateGhostPosition(ghost: Cordinates, newX: Int, newY: Int) {
         // Clear current position
         setImageOnBoard(ghost.x, ghost.y, null)
@@ -241,12 +259,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun MainView.gameOver() {
+        joystick.upBtn.setOnClickListener(null)
+        joystick.downBtn.setOnClickListener(null)
+        joystick.leftBtn.setOnClickListener(null)
+        joystick.rightBtn.setOnClickListener(null)
+
         activeGame = false
         for (row in board) {
             for (image in row) {
                 image.setImageDrawable(null)
             }
         }
+        ghostMoveJob?.cancel()
         val builder = AlertDialog.Builder(this@MainActivity)
         builder.setTitle("Game over")
         builder.setMessage("You score $score points")
