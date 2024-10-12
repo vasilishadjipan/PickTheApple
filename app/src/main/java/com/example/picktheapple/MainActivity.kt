@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
             while (activeGame) {
                 // Update UI elements here on the Main thread
                 moveGhosts()
+                setImageOnBoard(appleCord.x, appleCord.y, R.drawable.apple)
                 if (checkGhostsCord(playerCord))
                     gameOver()
                 delay(1000) // Suspend coroutine for 1 second
