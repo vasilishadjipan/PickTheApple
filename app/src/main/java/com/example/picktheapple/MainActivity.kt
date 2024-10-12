@@ -273,7 +273,15 @@ class MainActivity : AppCompatActivity() {
         ghostMoveJob?.cancel()
         val builder = AlertDialog.Builder(this@MainActivity)
         builder.setTitle("Game over")
-        builder.setMessage("You score $score points")
+        val sharedPreferences = getSharedPreferences("score", MODE_PRIVATE)
+        val sharedPrefEditor = sharedPreferences.edit()
+        var bestScore = sharedPreferences.getInt("bestScore", 0)
+        if(score>bestScore) {
+            bestScore = score
+            sharedPrefEditor.putInt("bestScore", bestScore)
+            sharedPrefEditor.apply()
+        }
+        builder.setMessage("Score: $score points\nBest Score: $bestScore points")
         builder.setPositiveButton("Play Again") { dialog, which ->
             play()
         }
